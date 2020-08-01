@@ -24,6 +24,7 @@ import net.minecraft.text.Text;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -45,24 +46,21 @@ public abstract class ScreenMixin {
 
     @Shadow public int height;
 
+    @Unique
+    public int startWidth = 0;
+
     @ModifyConstant(method="renderTooltip(Lnet/minecraft/client/util/math/MatrixStack;Ljava/util/List;II)V",constant=@Constant(intValue = 0,ordinal = 0))
     private int initialWidth(int zero) {
-        return 80;
-    }
-
-
-    @ModifyConstant(method="renderTooltip(Lnet/minecraft/client/util/math/MatrixStack;Ljava/util/List;II)V",constant=@Constant(intValue = 8,ordinal = 0))
-    private int initialHeight(int eight) {
-        return 8;//28;
-    }
-    @ModifyVariable(method="renderTooltip(Lnet/minecraft/client/util/math/MatrixStack;Ljava/util/List;II)V",at=@At(value="INVOKE",target="Lnet/minecraft/client/util/math/MatrixStack;translate(DDD)V"),name="l")
-    private int lineStart(int l) {
-        return l;//+18;
+        return startWidth;
     }
 
     @Inject(at=@At(value="HEAD"),method="Lnet/minecraft/client/gui/screen/Screen;renderTooltip(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/item/ItemStack;II)V", cancellable = true)
     private void renderItemStats(MatrixStack matrices, ItemStack stack, int mouse_x, int mouse_y, CallbackInfo info) {
         if (stack.getItem() instanceof ToolItem) {
+            startWidth=80;
+            String miningLevel = String.valueOf(((ToolItem) stack.getItem()).getMaterial().getMiningLevel());
+            int efficiency = EnchantmentHelper.getLevel(Enchantments.EFFICIENCY,stack);
+            String miningSpeed = String.valueOf(((ToolItem) stack.getItem()).getMaterial().getMiningSpeedMultiplier() + (efficiency*efficiency+1));
             List<StringRenderable> tooltips= Lists.newArrayList();
             tooltips.add(new LiteralText(" "));
             tooltips.add(new LiteralText(" "));
@@ -86,25 +84,20 @@ public abstract class ScreenMixin {
 
             float fontScale = 1.0f;
             VertexConsumerProvider.Immediate immediate = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
-            ItemStack pickaxe = new ItemStack(Items.IRON_PICKAXE);
-            ItemStack boots = new ItemStack(Items.IRON_BOOTS);
-            //BakedModel bakedModel = itemRenderer.getHeldItemModel(pickaxe, null, MinecraftClient.getInstance().player);
-            //itemRenderer.renderItem(pickaxe, ModelTransformation.Mode.GUI, false, matrices, immediate, 15728880, OverlayTexture.DEFAULT_UV, bakedModel);
-            //immediate.draw();
-            itemRenderer.zOffset += 400;
-            itemRenderer.renderInGuiWithOverrides(pickaxe, x, y);
-            itemRenderer.renderInGuiWithOverrides(boots, x + 28, y);
+            ItemStack level = new ItemStack(Items.IRON_PICKAXE);
+            ItemStack speed = new ItemStack(Items.FEATHER);
+            itemRenderer.zOffset += 400; // to render above the framing
+            itemRenderer.renderInGuiWithOverrides(level, x, y);
+            itemRenderer.renderInGuiWithOverrides(speed, x + 28, y);
             itemRenderer.zOffset -= 400;
             x = x + 18;
             matrices.scale(fontScale, fontScale, fontScale);
-            String miningLevel = String.valueOf(((ToolItem) stack.getItem()).getMaterial().getMiningLevel());
-            int efficiency = EnchantmentHelper.getLevel(Enchantments.EFFICIENCY,stack);
-            String miningSpeed = String.valueOf(((ToolItem) stack.getItem()).getMaterial().getMiningSpeedMultiplier() + (efficiency*efficiency+1));
             textRenderer.draw(matrices, miningLevel, x / fontScale, (y + 5) / fontScale, -1);
             textRenderer.draw(matrices, miningSpeed, (x + 28) / fontScale, (y + 5) / fontScale, -1);
             matrices.pop();
 
             info.cancel();
         }
+        startWidth=0;
     }
 }
