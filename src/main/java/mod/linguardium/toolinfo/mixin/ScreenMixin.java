@@ -83,7 +83,6 @@ public abstract class ScreenMixin {
             matrices.translate(0, 0, 500);
 
             float fontScale = 1.0f;
-            VertexConsumerProvider.Immediate immediate = MinecraftClient.getInstance().getBufferBuilders().getEntityVertexConsumers();
             ItemStack level = new ItemStack(Items.IRON_PICKAXE);
             ItemStack speed = new ItemStack(Items.FEATHER);
             itemRenderer.zOffset += 400; // to render above the framing
