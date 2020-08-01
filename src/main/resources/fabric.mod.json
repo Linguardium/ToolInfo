@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "toolinfo",
+  "version": "${version}",
+  "name": "ToolInfo",
+  "description": "Adds tooltip to tools with level",
+  "authors": [
+    "Linguardium"
+  ],
+  "contributors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/toolinfo/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": [ ],
+    "client": [],
+    "server": []
+  },
+  "mixins": [
+    "toolinfo.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.4.0",
+    "fabric": "*"
+  }
+}
